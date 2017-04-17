@@ -5,11 +5,13 @@
 1. Install Python
 2. Install Java
 3. Install Git
-4. Archiving utility that understands .jar files and other types (useful for digging into things)
+4. Install Archiving utility that understands .jar files and other types (useful for digging into things)
 5. Put Python, Git, and JDK in your PATH (if the installers didn't do so already)
 6. git clone https://github.com/Tri4ce/shadowbroker.git
 
 _Note: Before cloning, make sure there are NO SPACES IN YOUR DIRECTORY STRUCTURE! Some of the scripts check for spaces and will exit with an error if your directories contain any._
+
+_Note: If you need to decompile any JAR files, http://www.javadecompilers.com works like a charm_
 
 ## Windows
 
@@ -42,5 +44,6 @@ I have been tracing the source code paths and what links to what throughout the 
     * Passes any additional arguments carried forward from start_lp.py
 
 * Start.jar
+  * Reads from user.defaults and start.properties
   * 
 
