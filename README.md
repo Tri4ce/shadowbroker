@@ -6,19 +6,18 @@
 2. Install Java
 3. Install Git
 4. Archiving utility that understands .jar files and other types (useful for digging into things)
-5. Clone Git Repository
-_Note: Make sure there are NO SPACES IN YOUR DIRECTORY STRUCTURE! Some of the scripts check for spaces and will exit with an error if your directories contain any._
+5. Put Python, Git, and JDK in your PATH (if the installers didn't do so already)
+6. git clone https://github.com/Tri4ce/shadowbroker.git
+
+_Note: Before cloning, make sure there are NO SPACES IN YOUR DIRECTORY STRUCTURE! Some of the scripts check for spaces and will exit with an error if your directories contain any._
 
 ## Windows
 
-1. Put Python, Git, and JDK in your PATH (if the installers didn't do so already) 
-2. git clone https://github.com/Tri4ce/shadowbroker.git
-3. Modify 
+1. Modify ...
 
 ## Linux
 
-1. Put Python, Git, and JDK in your (What's PATH called in linux land?) (if the installers didn't do so already) 
-2. git clone https://github.com/Tri4ce/shadowbroker.git
+1. Modify ...
 
 ## MacOS
 
