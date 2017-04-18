@@ -56,9 +56,9 @@ import org.jdesktop.layout.GroupLayout.ParallelGroup;
 import org.jdesktop.layout.GroupLayout.SequentialGroup;
 import sun.misc.URLClassPath;
 
-public class Start
-  extends JFrame
+public class Start extends JFrame
 {
+
   public static final String PATH_TOOLCHAIN = "java-j2se_1.6-sun";
   public static final String PATH_LIBRARY = "lib";
   public static final String OPERATION_DISK = "OpsDisk";
@@ -99,15 +99,24 @@ public class Start
   public static final String LIVE_KEYWORD = String.format("live.%s", new Object[] { "DSZ_KEYWORD" });
   public static final String REPLAY_KEYWORD = String.format("replay.%s", new Object[] { "DSZ_KEYWORD" });
   public static final String DSZ_DEFAULT = "Default";
-  static Properties prop = new Properties();
-  static Properties userDefaults = new Properties();
   public static final String START_PROPERTIES = "start.properties";
   public static final String USER_DEFAULTS = "user.defaults";
+  private static char[] INVALIDCHARACTERS = { '\t', ' ', '\b', '\n', '\r' };
+  static final Pattern[] patterns = { Pattern.compile("[0-9a-fA-F]{1,8}"), Pattern.compile("[Zz][0-2]{0,1}[0-9]{0,2}\\.[0-2]{0,1}[0-9]{0,2}\\.[0-2]{0,1}[0-9]{0,2}\\.[0-2]{0,1}[0-9]{0,2}") };
+  
+  /**
+   * Collection of key/value pairs representing values loaded from start.properties
+   */
+  static Properties startProperties = new Properties();
+
+  /**
+   * Collection of key/value pairs representing values loaded from user.defaults
+   */
+  static Properties userDefaults = new Properties();
+  
   boolean inferTextFieldValues = false;
   JFileChooser directoryFinder = null;
-  private static char[] INVALIDCHARACTERS = { '\t', ' ', '\b', '\n', '\r' };
   File themeSearchRoot = null;
-
   DefaultComboBoxModel liveOperationThemes = new DefaultComboBoxModel();
   DefaultComboBoxModel replayOperationThemes = new DefaultComboBoxModel();
   JRadioButton buildDebug;
@@ -146,8 +155,6 @@ public class Start
   JCheckBox threadDump;
   JCheckBox waitFor;
   
-  static final Pattern[] patterns = { Pattern.compile("[0-9a-fA-F]{1,8}"), Pattern.compile("[Zz][0-2]{0,1}[0-9]{0,2}\\.[0-2]{0,1}[0-9]{0,2}\\.[0-2]{0,1}[0-9]{0,2}\\.[0-2]{0,1}[0-9]{0,2}") };
-  
   private static FilenameFilter jars = new FilenameFilter()
   {
     public boolean accept(File paramAnonymousFile, String paramAnonymousString)
@@ -169,7 +176,7 @@ public class Start
 
     // Attempt to load properties from "start.properties"
     try {
-      prop.load(new FileInputStream("start.properties"));
+      startProperties.load(new FileInputStream("start.properties"));
     }
     catch (FileNotFoundException localFileNotFoundException1) {
       localFileNotFoundException1.printStackTrace();
@@ -265,7 +272,7 @@ public class Start
     setLocationByPlatform(true);
     setName("startFrame");
     setResizable(false);
-    resourceField.setToolTipText(prop.getProperty("tooltip.resource"));
+    resourceField.setToolTipText(startProperties.getProperty("tooltip.resource"));
     resourceField.addKeyListener(new KeyAdapter()
     {
       public void keyReleased(KeyEvent paramAnonymousKeyEvent)
@@ -273,7 +280,7 @@ public class Start
         Start.this.enterPressed(paramAnonymousKeyEvent);
       }
     });
-    logField.setToolTipText(prop.getProperty("tooltip.log"));
+    logField.setToolTipText(startProperties.getProperty("tooltip.log"));
     logField.addKeyListener(new KeyAdapter()
     {
       public void keyReleased(KeyEvent paramAnonymousKeyEvent)
@@ -281,7 +288,7 @@ public class Start
         Start.this.enterPressed(paramAnonymousKeyEvent);
       }
     });
-    configurationField.setToolTipText(prop.getProperty("tooltip.config"));
+    configurationField.setToolTipText(startProperties.getProperty("tooltip.config"));
     configurationField.addKeyListener(new KeyAdapter()
     {
       public void keyReleased(KeyEvent paramAnonymousKeyEvent)
@@ -289,7 +296,7 @@ public class Start
         Start.this.enterPressed(paramAnonymousKeyEvent);
       }
     });
-    operationField.setToolTipText(prop.getProperty("tooltip.disk"));
+    operationField.setToolTipText(startProperties.getProperty("tooltip.disk"));
     operationField.addKeyListener(new KeyAdapter()
     {
       public void keyReleased(KeyEvent paramAnonymousKeyEvent)
@@ -297,12 +304,13 @@ public class Start
         Start.this.enterPressed(paramAnonymousKeyEvent);
       }
     });
-    resourceLabel.setText(prop.getProperty("label.resource"));
-    logLabel.setText(prop.getProperty("label.log"));
-    configurationLabel.setText(prop.getProperty("label.config"));
-    operationLabel.setText(prop.getProperty("label.disk"));
-    resourceBrowse.setText(prop.getProperty("label.browse"));
-    resourceBrowse.setToolTipText(prop.getProperty("tooltip.resource.browse"));
+    
+    resourceLabel.setText(startProperties.getProperty("label.resource"));
+    logLabel.setText(startProperties.getProperty("label.log"));
+    configurationLabel.setText(startProperties.getProperty("label.config"));
+    operationLabel.setText(startProperties.getProperty("label.disk"));
+    resourceBrowse.setText(startProperties.getProperty("label.browse"));
+    resourceBrowse.setToolTipText(startProperties.getProperty("tooltip.resource.browse"));
     resourceBrowse.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent paramAnonymousActionEvent)
@@ -310,8 +318,8 @@ public class Start
         Start.this.resourceBrowseActionPerformed(paramAnonymousActionEvent);
       }
     });
-    logBrowse.setText(prop.getProperty("label.browse"));
-    logBrowse.setToolTipText(prop.getProperty("tooltip.log.browse"));
+    logBrowse.setText(startProperties.getProperty("label.browse"));
+    logBrowse.setToolTipText(startProperties.getProperty("tooltip.log.browse"));
     logBrowse.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent paramAnonymousActionEvent)
@@ -319,8 +327,8 @@ public class Start
         Start.this.logBrowseActionPerformed(paramAnonymousActionEvent);
       }
     });
-    configurationBrowse.setText(prop.getProperty("label.browse"));
-    configurationBrowse.setToolTipText(prop.getProperty("tooltip.config.browse"));
+    configurationBrowse.setText(startProperties.getProperty("label.browse"));
+    configurationBrowse.setToolTipText(startProperties.getProperty("tooltip.config.browse"));
     configurationBrowse.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent paramAnonymousActionEvent)
@@ -328,8 +336,8 @@ public class Start
         Start.this.configurationBrowseActionPerformed(paramAnonymousActionEvent);
       }
     });
-    operationBrowse.setText(prop.getProperty("label.browse"));
-    operationBrowse.setToolTipText(prop.getProperty("tooltip.disk.browse"));
+    operationBrowse.setText(startProperties.getProperty("label.browse"));
+    operationBrowse.setToolTipText(startProperties.getProperty("tooltip.disk.browse"));
     operationBrowse.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent paramAnonymousActionEvent)
@@ -337,8 +345,8 @@ public class Start
         Start.this.operationBrowseActionPerformed(paramAnonymousActionEvent);
       }
     });
-    goButton.setText(prop.getProperty("label.start"));
-    goButton.setToolTipText(prop.getProperty("tooltip.start"));
+    goButton.setText(startProperties.getProperty("label.start"));
+    goButton.setToolTipText(startProperties.getProperty("tooltip.start"));
     goButton.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent paramAnonymousActionEvent)
@@ -346,7 +354,7 @@ public class Start
         Start.this.goButtonActionPerformed(paramAnonymousActionEvent);
       }
     });
-    localCommsAddressLabel.setText(prop.getProperty("label.comms"));
+    localCommsAddressLabel.setText(startProperties.getProperty("label.comms"));
     localCommsAddressField.setText("z0.0.0.1");
     localCommsAddressField.addKeyListener(new KeyAdapter()
     {
@@ -355,11 +363,11 @@ public class Start
         Start.this.enterPressed(paramAnonymousKeyEvent);
       }
     });
-    operationPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), prop.getProperty("label.opMode")));
+    operationPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), startProperties.getProperty("label.opMode")));
     operationType.add(liveOption);
     liveOption.setSelected(true);
-    liveOption.setText(prop.getProperty("label.live"));
-    liveOption.setToolTipText(prop.getProperty("tooltip.live"));
+    liveOption.setText(startProperties.getProperty("label.live"));
+    liveOption.setToolTipText(startProperties.getProperty("tooltip.live"));
     liveOption.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     liveOption.setMargin(new Insets(0, 0, 0, 0));
     liveOption.addActionListener(new ActionListener()
@@ -370,8 +378,8 @@ public class Start
       }
     });
     operationType.add(replayOption);
-    replayOption.setText(prop.getProperty("label.replay"));
-    replayOption.setToolTipText(prop.getProperty("tooltip.replay"));
+    replayOption.setText(startProperties.getProperty("label.replay"));
+    replayOption.setToolTipText(startProperties.getProperty("tooltip.replay"));
     replayOption.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     replayOption.setMargin(new Insets(0, 0, 0, 0));
     replayOption.addActionListener(new ActionListener()
@@ -385,13 +393,13 @@ public class Start
     operationPanel.setLayout(localGroupLayout1);
     localGroupLayout1.setHorizontalGroup(localGroupLayout1.createParallelGroup(1).add(localGroupLayout1.createSequentialGroup().add(localGroupLayout1.createParallelGroup(1).add(liveOption).add(replayOption)).addContainerGap(45, 32767)));
     localGroupLayout1.setVerticalGroup(localGroupLayout1.createParallelGroup(1).add(localGroupLayout1.createSequentialGroup().add(liveOption).addPreferredGap(0).add(replayOption).addContainerGap(-1, 32767)));
-    optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), prop.getProperty("label.options")));
-    loadPrevious.setText(prop.getProperty("label.loadPrevious"));
-    loadPrevious.setToolTipText(prop.getProperty("tooltip.loadPrevious"));
+    optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), startProperties.getProperty("label.options")));
+    loadPrevious.setText(startProperties.getProperty("label.loadPrevious"));
+    loadPrevious.setToolTipText(startProperties.getProperty("tooltip.loadPrevious"));
     loadPrevious.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     loadPrevious.setMargin(new Insets(0, 0, 0, 0));
-    localMode.setText(prop.getProperty("label.localMode"));
-    localMode.setToolTipText(prop.getProperty("tooltip.localMode"));
+    localMode.setText(startProperties.getProperty("label.localMode"));
+    localMode.setToolTipText(startProperties.getProperty("tooltip.localMode"));
     localMode.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     localMode.setMargin(new Insets(0, 0, 0, 0));
     localMode.setVisible(isShowLocal());
@@ -399,31 +407,31 @@ public class Start
     optionsPanel.setLayout(localGroupLayout2);
     localGroupLayout2.setHorizontalGroup(localGroupLayout2.createParallelGroup(1).add(localGroupLayout2.createSequentialGroup().addContainerGap().add(localGroupLayout2.createParallelGroup(1).add(loadPrevious).add(localMode)).addContainerGap(-1, 32767)));
     localGroupLayout2.setVerticalGroup(localGroupLayout2.createParallelGroup(1).add(localGroupLayout2.createSequentialGroup().add(loadPrevious).addPreferredGap(0).add(localMode).addContainerGap(-1, 32767)));
-    corePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), prop.getProperty("label.core")));
+    corePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), startProperties.getProperty("label.core")));
     corePanel.setVisible(isShowDebugCore());
     coreBuild.add(buildDebug);
-    buildDebug.setText(prop.getProperty("label.debug"));
-    buildDebug.setToolTipText(prop.getProperty("tooltip.debug"));
+    buildDebug.setText(startProperties.getProperty("label.debug"));
+    buildDebug.setToolTipText(startProperties.getProperty("tooltip.debug"));
     buildDebug.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     buildDebug.setMargin(new Insets(0, 0, 0, 0));
     coreBuild.add(buildRelease);
     buildRelease.setSelected(true);
-    buildRelease.setText(prop.getProperty("label.release"));
-    buildRelease.setToolTipText(prop.getProperty("tooltip.release"));
+    buildRelease.setText(startProperties.getProperty("label.release"));
+    buildRelease.setToolTipText(startProperties.getProperty("tooltip.release"));
     buildRelease.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     buildRelease.setMargin(new Insets(0, 0, 0, 0));
     GroupLayout localGroupLayout3 = new GroupLayout(corePanel);
     corePanel.setLayout(localGroupLayout3);
     localGroupLayout3.setHorizontalGroup(localGroupLayout3.createParallelGroup(1).add(localGroupLayout3.createSequentialGroup().addContainerGap().add(localGroupLayout3.createParallelGroup(1).add(buildRelease).add(buildDebug)).addContainerGap(-1, 32767)));
     localGroupLayout3.setVerticalGroup(localGroupLayout3.createParallelGroup(1).add(localGroupLayout3.createSequentialGroup().add(buildRelease).addPreferredGap(0).add(buildDebug).addContainerGap(-1, 32767)));
-    guiPanel.setBorder(BorderFactory.createTitledBorder(prop.getProperty("label.gui")));
+    guiPanel.setBorder(BorderFactory.createTitledBorder(startProperties.getProperty("label.gui")));
     guiPanel.setVisible(isShowDebugGui());
     guiBuild.add(guiRelease);
-    guiRelease.setText(prop.getProperty("label.release"));
+    guiRelease.setText(startProperties.getProperty("label.release"));
     guiRelease.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     guiRelease.setMargin(new Insets(0, 0, 0, 0));
     guiBuild.add(guiDebug);
-    guiDebug.setText(prop.getProperty("label.debug"));
+    guiDebug.setText(startProperties.getProperty("label.debug"));
     guiDebug.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     guiDebug.setMargin(new Insets(0, 0, 0, 0));
     GroupLayout localGroupLayout4 = new GroupLayout(guiPanel);
@@ -515,43 +523,58 @@ public class Start
     }
   }
   
-  private void enterPressed(KeyEvent paramKeyEvent)
+  private void enterPressed(KeyEvent keyEvent)
   {
-    if (paramKeyEvent.getKeyCode() == 10) {
+    if (keyEvent.getKeyCode() == 10) {
       DanderSpritzBegin();
     } else {
       examine();
     }
   }
-  
-  boolean setDirectory(JTextField paramJTextField, String paramString)
+
+  /**
+   * Displays a message dialog that allows the user to pick a
+   * directory and sets the corresponding textField value to
+   * whatever the user decides on.
+   * 
+   * @param   textField     the textField to populate with the chosen directory path
+   * @param   dialogTitle   the text to use as the dialog's title
+   * @return                value indicating whether or not directory selection was successful
+   */
+  boolean setDirectory(JTextField textField, String dialogTitle)
   {
+
     if (directoryFinder == null)
     {
       JOptionPane.showMessageDialog(this, "The File Selector dialog did not initialize.  You must enter your paths manually.", "File Selector not available", 2);
       return false;
     }
+
     directoryFinder.setDialogTitle(paramString);
-    if (paramJTextField.getText().trim().length() > 0)
+
+    if (textField.getText().trim().length() > 0)
     {
-      File localFile = new File(paramJTextField.getText().trim());
+      File localFile = new File(textField.getText().trim());
       directoryFinder.setSelectedFile(localFile);
       directoryFinder.setCurrentDirectory(localFile.getParentFile());
     }
+    
     if (directoryFinder.showDialog(this, "Select") == 0)
     {
-      paramJTextField.setText(directoryFinder.getSelectedFile().getAbsolutePath());
+      textField.setText(directoryFinder.getSelectedFile().getAbsolutePath());
       return true;
     }
+    
     return false;
+
   }
   
   /**
    * Infers the values for multiple textFields and other items
    * 
-   * 1. If the Operations Field text is blank, then set it to the Current Working Directory (CWD)
-   * 2. If the Resource Field text is blank, then set it to <CWD>/Resources/
-   * 3. If the Log Field text is blank, then set it to <CWD>/Logs/
+   * 1. If the Operations Field text is blank, then set it to the Current Working Directory (CWD)<br>
+   * 2. If the Resource Field text is blank, then set it to <CWD>/Resources/<br>
+   * 3. If the Log Field text is blank, then set it to <CWD>/Logs/<br>
    * 4. If the Configuration Field text is blank, then set it to <CWD>/UserConfiguration/
    * 
    */
@@ -621,13 +644,14 @@ public class Start
     localVector.add(".");
     File[] arrayOfFile1 = fileOrPathName.listFiles();
     if (arrayOfFile1 != null) {
-      for (localTreeSet2 : arrayOfFile1) {
+      for (File localTreeSet2 : arrayOfFile1) {
         if (localTreeSet2.isDirectory()) {
           localVector.add(localTreeSet2.getName());
         }
       }
     }
-    ??? = Pattern.compile("systemStartup_([^.]+).xml");
+    
+    Pattern regExPattern = Pattern.compile("systemStartup_([^.]+).xml");
     Pattern localPattern = Pattern.compile("replay_([^.]+).xml");
     TreeSet localTreeSet1 = new TreeSet();
     TreeSet localTreeSet2 = new TreeSet();
@@ -639,14 +663,14 @@ public class Start
       File localFile1 = new File(themeSearchRoot, String.format("%s/%s", new Object[] { str2, str1 }));
       arrayOfFile1 = localFile1.listFiles();
       if (arrayOfFile1 != null) {
-        for (File localFile2 : arrayOfFile1) {
-          if (localFile2.isFile())
+        for (File fileNames : arrayOfFile1) {
+          if (fileName.isFile())
           {
-            Matcher localMatcher = ((Pattern)???).matcher(localFile2.getName());
+            Matcher localMatcher = regExPattern.matcher(fileName.getName());
             if (localMatcher.matches()) {
               localTreeSet1.add(localMatcher.group(1));
             }
-            localMatcher = localPattern.matcher(localFile2.getName());
+            localMatcher = localPattern.matcher(fileName.getName());
             if (localMatcher.matches()) {
               localTreeSet2.add(localMatcher.group(1));
             }
@@ -654,6 +678,7 @@ public class Start
         }
       }
     }
+
     liveOperationThemes.addElement("Default");
     localIterator = localTreeSet1.iterator();
     while (localIterator.hasNext())
@@ -661,6 +686,7 @@ public class Start
       str2 = (String)localIterator.next();
       liveOperationThemes.addElement(str2);
     }
+
     replayOperationThemes.addElement("Default");
     localIterator = localTreeSet2.iterator();
     while (localIterator.hasNext())
@@ -673,7 +699,7 @@ public class Start
   /**
    * Entry-point for Start.jar
    */
-  public static void main(String[] paramArrayOfString)
+  public static void main(String[] args)
   {
     
     // Set the Default Look-and-Feel for Swing UI Components
@@ -737,12 +763,13 @@ public class Start
       }
       
       String str3 = resourceField.getText();
-      if (str3.endsWith(prop.getProperty("res.dir", "Dsz")))
+      if (str3.endsWith(startProperties.getProperty("res.dir", "Dsz")))
       {
-        str3 = str3.substring(0, str3.lastIndexOf(prop.getProperty("res.dir", "Dsz")));
+        str3 = str3.substring(0, str3.lastIndexOf(startProperties.getProperty("res.dir", "Dsz")));
         resourceField.setText(str3);
       }
       operationPanel.setVisible(localStart.isShowOpType());
+
       if (localStart.isShowDebugCore())
       {
         buildRelease.setSelected(getBooleanDefault("BuildType", Boolean.valueOf(true)).booleanValue());
@@ -753,6 +780,7 @@ public class Start
         buildRelease.setSelected(true);
         buildDebug.setSelected(false);
       }
+
       if (localStart.isShowDebugGui())
       {
         guiRelease.setSelected(getBooleanDefault("GuiType", Boolean.valueOf(true)).booleanValue());
@@ -763,28 +791,37 @@ public class Start
         guiRelease.setSelected(true);
         guiDebug.setSelected(false);
       }
+
       if (localStart.isShowLocal()) {
         localMode.setSelected(getBooleanDefault("LocalMode", Boolean.valueOf(false)).booleanValue());
       } else {
         localMode.setSelected(false);
       }
+      
       loadPrevious.setSelected(getBooleanDefault("LoadPrevious", Boolean.valueOf(false)).booleanValue());
       if (localStart.isShowThreadDump()) {
         threadDump.setSelected(getBooleanDefault("thread.dump", Boolean.valueOf(false)).booleanValue());
       }
       waitFor.setSelected(getBooleanDefault("wait.for.output", Boolean.valueOf(false)).booleanValue());
+      
+      // Loop through and parse arguments passed-in to main
       int j = 0;
-      for (int k = 0; k < paramArrayOfString.length; k++)
+      for (int k = 0; k < args.length; k++)
       {
-        String str4 = paramArrayOfString[k];
-        String[] arrayOfString = str4.split("=", 2);
+        
+        String currentArgument = args[k];
+        String[] arrayOfString = currentArgument.split("=", 2);
+
+        // If the argument is incomplete, throw up help text and bail
         if (arrayOfString.length == 0)
         {
           doHelp(localStart);
           System.exit(0);
         }
-        String str5 = arrayOfString[0].toLowerCase();
-        if (str5.equals("-core"))
+
+        // Handle argument switches and corresponding values
+        String argumentName = arrayOfString[0].toLowerCase();
+        if (argumentName.equals("-core"))
         {
           if (arrayOfString.length == 2)
           {
@@ -802,7 +839,8 @@ public class Start
             doHelp(localStart);
           }
         }
-        else if (str5.equals("-gui"))
+
+        else if (argumentName.equals("-gui"))
         {
           if (arrayOfString.length == 2)
           {
@@ -820,47 +858,54 @@ public class Start
             doHelp(localStart);
           }
         }
-        else if (str5.equals("-debug"))
+
+        else if (argumentName.equals("-debug"))
         {
           buildDebug.setSelected(true);
         }
-        else if (str5.equals("-release"))
+
+        else if (argumentName.equals("-release"))
         {
           buildRelease.setSelected(true);
         }
-        else if (str5.equals("-local"))
+
+        else if (argumentName.equals("-local"))
         {
           localMode.setSelected(true);
         }
-        else if (str5.equals("-previous"))
+
+        else if (argumentName.equals("-previous"))
         {
           loadPrevious.setSelected(true);
         }
-        else if (str5.equals("-live"))
+
+        else if (argumentName.equals("-live"))
         {
           liveOption.setSelected(true);
         }
-        else if (str5.equals("-replay"))
+
+        else if (argumentName.equals("-replay"))
         {
           replayOption.setSelected(true);
         }
-        else if ((str5.equals("-opsdisk")) && (arrayOfString.length == 2))
+
+        else if ((argumentName.equals("-opsdisk")) && (arrayOfString.length == 2))
         {
           operationField.setText(arrayOfString[1]);
         }
-        else if ((str5.equals("-resource")) && (arrayOfString.length == 2))
+        else if ((argumentName.equals("-resource")) && (arrayOfString.length == 2))
         {
           resourceField.setText(arrayOfString[1]);
         }
-        else if ((str5.equals("-log")) && (arrayOfString.length == 2))
+        else if ((argumentName.equals("-log")) && (arrayOfString.length == 2))
         {
           logField.setText(arrayOfString[1]);
         }
-        else if ((str5.equals("-config")) && (arrayOfString.length == 2))
+        else if ((argumentName.equals("-config")) && (arrayOfString.length == 2))
         {
           configurationField.setText(arrayOfString[1]);
         }
-        else if (str5.equals("-load"))
+        else if (argumentName.equals("-load"))
         {
           j = 1;
         }
@@ -1137,13 +1182,14 @@ public class Start
   }
   
   /**
-   * Returns a value indicating whether or not we're ready <for what?> if:
+   * Returns a value indicating whether or not we're ready to launch the
+   * DanderSpritz implementation, which is true if:
    * 
-   * 1. We're not attempting to guess the user.defaults file and infer it
-   * 2. evaluate returns true (wtf does taht do?)
+   * 1. We're not attempting to guess the user.defaults file and infer it<br>
+   * 2. evaluate returns true (are all configuration fields valid)<br>
    * 3. examine returns true (wtf does that do?)
    * 
-   * @return    value indicating if we're ready <for what?>
+   * @return    value indicating if we're ready to launch the DanderSpritz implementation
    */
   public boolean isReady()
   {
@@ -1284,6 +1330,7 @@ public class Start
     setBooleanDefault("thread.dump", Boolean.valueOf(threadDump.isSelected()));
     setBooleanDefault("wait.for.output", Boolean.valueOf(waitFor.isSelected()));
     
+    // Persist our current values for user.defaults
     try
     {
       userDefaults.store(new FileOutputStream("user.defaults"), "Autogenerated DanderSpritz configuration.  Do not edit manually");
@@ -1291,36 +1338,48 @@ public class Start
     catch (Exception localException2) {}
     
     ProcessBuilder localProcessBuilder = new ProcessBuilder(new String[0]);
-    Vector localVector1 = new Vector();
-    localProcessBuilder.command(localVector1);
+    Vector programAndArguments = new Vector();
+    localProcessBuilder.command(programAndArguments);
     String str2 = resourceField.getText();
-    localVector1.add(prop.getProperty("java.exe", "java"));
-    Object localObject3;
-    for (localObject3 : prop.getProperty("vmargs", "").split("\\s")) {
-      if (localObject3.length() > 0) {
-        localVector1.add(localObject3);
+
+    programAndArguments.add(startProperties.getProperty("java.exe", "java"));
+    
+    // Handle the vmargs values (if any) in the start.properties file
+    for (String propertyValue : startProperties.getProperty("vmargs", "").split("\\s")) {
+      if (propertyValue.length() > 0) {
+        programAndArguments.add(propertyValue);
       }
     }
+
+    // Handle the vmargs.debug values (if any) in the start.properties file
     if (guiDebug.isSelected()) {
-      for (localObject3 : prop.getProperty("vmargs.debug", "").split("\\s")) {
-        if (localObject3.length() > 0) {
-          localVector1.add(localObject3);
+      for (String propertyValue : startProperties.getProperty("vmargs.debug", "").split("\\s")) {
+        if (propertyValue.length() > 0) {
+          programAndArguments.add(propertyValue);
         }
       }
     }
-    localVector1.add(String.format("-Djava.endorsed.dirs=%s/ExternalLibraries/%s/endorsed", new Object[] { str2, "java-j2se_1.6-sun" }));
+
+    // Setup any endorsed library directories
+    programAndArguments.add(String.format("-Djava.endorsed.dirs=%s/ExternalLibraries/%s/endorsed", new Object[] { str2, "java-j2se_1.6-sun" }));
+    
     ??? = new Vector();
     Vector localVector2 = new Vector();
-    addJars((List)???, new File(String.format("%s/ExternalLibraries/%s", new Object[] { str2, "java-j2se_1.6-sun" })));
+    
+    List<String> fileList;
+    addJars(fileList, new File(String.format("%s/ExternalLibraries/%s", new Object[] { str2, "java-j2se_1.6-sun" })));
+    
     localVector2.add("Ops");
     localVector2.add(".");
-    localVector2.add(prop.getProperty("res.dir", "Dsz"));
+    localVector2.add(startProperties.getProperty("res.dir", "Dsz"));
+
     File localFile5;
     for (localFile5 : new File(str2).listFiles()) {
       if ((localFile5.isDirectory()) && (!localVector2.contains(localFile5.getName()))) {
         localVector2.add(localFile5.getName());
       }
     }
+    
     ??? = localVector2.iterator();
     Object localObject6;
     while (((Iterator)???).hasNext())
@@ -1340,7 +1399,7 @@ public class Start
       }
     }
     int n = 0;
-    if (System.getProperty("os.name").toLowerCase().startsWith(prop.getProperty("windows.start", "win"))) {
+    if (System.getProperty("os.name").toLowerCase().startsWith(startProperties.getProperty("windows.start", "win"))) {
       n = 1;
     }
     Object localObject4 = new URL[((List)???).size()];
@@ -1383,24 +1442,24 @@ public class Start
     localVector3.add(String.format("-logDir=%s", new Object[] { logField.getText() }));
     localVector3.add(String.format("-resourceDir=%s", new Object[] { str2 }));
     localVector3.add(String.format("-comms=%s", new Object[] { localCommsAddressField.getText() }));
-    localVector3.add(String.format("-build=%s", new Object[] { prop.getProperty(String.format("%s.%s", new Object[] { n != 0 ? "windows" : "linux", buildRelease.isSelected() ? "build.release" : "build.debug" })) }));
+    localVector3.add(String.format("-build=%s", new Object[] { startProperties.getProperty(String.format("%s.%s", new Object[] { n != 0 ? "windows" : "linux", buildRelease.isSelected() ? "build.release" : "build.debug" })) }));
     localVector3.add(String.format("-local=%s", new Object[] { localMode.isSelected() ? "true" : "false" }));
     localVector3.add(String.format("-config=%s", new Object[] { localFile2.getAbsolutePath() }));
     localVector3.add(String.format("-loadPrevious=%s", new Object[] { loadPrevious.isSelected() ? "true" : "false" }));
     localVector3.add(String.format("-threadDump=%s", new Object[] { threadDump.isSelected() ? "true" : "false" }));
     Object localObject7 = null;
     if (liveOption.isSelected()) {
-      localObject7 = prop.getProperty("live.operation");
+      localObject7 = startProperties.getProperty("live.operation");
     } else {
-      localObject7 = prop.getProperty("replay.operation");
+      localObject7 = startProperties.getProperty("replay.operation");
     }
     if (n != 0) {
-      addLibraryPath(String.format("%s\\ExternalLibraries\\%s", new Object[] { str2, prop.getProperty(String.format("%s.%s", new Object[] { "windows", "tool.chain" })) }));
+      addLibraryPath(String.format("%s\\ExternalLibraries\\%s", new Object[] { str2, startProperties.getProperty(String.format("%s.%s", new Object[] { "windows", "tool.chain" })) }));
     } else {
-      addLibraryPath(String.format("%s/ExternalLibraries/%s", new Object[] { str2, prop.getProperty(String.format("%s.%s", new Object[] { "linux", "tool.chain" })) }));
+      addLibraryPath(String.format("%s/ExternalLibraries/%s", new Object[] { str2, startProperties.getProperty(String.format("%s.%s", new Object[] { "linux", "tool.chain" })) }));
     }
-    System.setProperty("windows.tool.chain", prop.getProperty(String.format("%s.%s", new Object[] { "windows", "tool.chain" })));
-    System.setProperty("linux.tool.chain", prop.getProperty(String.format("%s.%s", new Object[] { "linux", "tool.chain" })));
+    System.setProperty("windows.tool.chain", startProperties.getProperty(String.format("%s.%s", new Object[] { "windows", "tool.chain" })));
+    System.setProperty("linux.tool.chain", startProperties.getProperty(String.format("%s.%s", new Object[] { "linux", "tool.chain" })));
     if ((themeSelector.getSelectedItem() != null) && (!themeSelector.getSelectedItem().equals("Default"))) {
       System.setProperty("DSZ_KEYWORD", themeSelector.getSelectedItem().toString());
     }
@@ -1425,27 +1484,51 @@ public class Start
     }
   }
   
-  private void addJars(List<String> paramList, File fileOrPathName)
+  /**
+   * Populates the provided fileList with any .jar files that
+   * are found inside of a directory represented by the supplied path.
+   * 
+   * @param   fileList        the fileList to populate with discovered JAR files
+   * @param   directoryPath   the path to the directory to scan for JAR files
+   */
+  private void addJars(List<String> fileList, File directoryPath)
   {
-    if (!fileOrPathName.isDirectory()) {
+
+    if (!directoryPath.isDirectory()) {
       return;
     }
-    for (File localFile : fileOrPathName.listFiles(jars)) {
-      paramList.add(localFile.getAbsolutePath());
+
+    // Add a File object for each .jar file found in the directory
+    // represented by the directoryPath
+    for (File localFile : directoryPath.listFiles(jars)) {
+      fileList.add(localFile.getAbsolutePath());
     }
+
   }
   
-  private void addJarsRecursively(List<String> paramList, File fileOrPathName)
+  /**
+   * Populates the provided fileList with any .jar files that
+   * are found inside of a directory, and recursively through
+   * its sub-directories starting at the directory path supplied.
+   * 
+   * @param   fileList        the fileList to populate with discovered JAR files
+   * @param   directoryPath   the path to the parent directory to scan for JAR files
+   */
+  private void addJarsRecursively(List<String> fileList, File directoryPath)
   {
-    if (!fileOrPathName.isDirectory()) {
+
+    if (!directoryPath.isDirectory()) {
       return;
     }
-    addJars(paramList, fileOrPathName);
-    for (File localFile : fileOrPathName.listFiles()) {
+
+    addJars(fileList, directoryPath);
+    
+    for (File localFile : directoryPath.listFiles()) {
       if ((localFile.isDirectory()) && (!localFile.getName().equals(".svn"))) {
-        addJarsRecursively(paramList, localFile);
+        addJarsRecursively(fileList, localFile);
       }
     }
+
   }
   
   public boolean isShowOpType()
@@ -1477,7 +1560,7 @@ public class Start
   {
     try
     {
-      return Boolean.parseBoolean(prop.getProperty(paramString, paramBoolean.toString()));
+      return Boolean.parseBoolean(startProperties.getProperty(paramString, paramBoolean.toString()));
     }
     catch (Throwable localThrowable) {}
     return paramBoolean.booleanValue();
@@ -1518,10 +1601,10 @@ public class Start
   
   /**
    * Called from:
-   *  start() - if we're inferring the textField values
-   *  isReady() - when checking for <what are we checking for?>
-   *  enterPressed(KeyEvent paramKeyEvent) - 
-   *  infer(File fileOrPathName) - 
+   *  start() - if we're inferring the textField values<br>
+   *  isReady() - when checking for <what are we checking for?><br>
+   *  enterPressed(KeyEvent paramKeyEvent) - <br>
+   *  infer(File fileOrPathName) - <br>
    * 
    * @return  a value indicating ...
    */
@@ -1601,9 +1684,9 @@ public class Start
    * Configures the Foreground and Background colors of a textField
    * to make it look enabled or disabled.
    * 
-   * 1. Any invalid characters in the textfield will disable it
-   * 2. If there are any files/directories passed in and they
-   *    don't exist, this will also disable the textfield
+   * 1. Any invalid characters in the textfield will disable it<br>
+   * 2. If there are any files/directories passed in and they<br>
+   *    don't exist, this will also disable the textfield<br>
    * 
    * 
    * @param   fileList    the List of File objects to examine and check for existence

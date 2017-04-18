@@ -56,20 +56,99 @@ I have been tracing the source code paths and what links to what throughout the 
     * Disables JMX RMI Authenticaion
     * Starts with 20MB of memory, allowed up to 1GB
     * Tells the JVM to override endorsed java libs with those located in Resources/Dsz/Gui/Lib/endorsed
-        * _Note: Currently this directory has no contents, but contains a sub-directory called java-j2se_1.6-sun which does...Need to do some more reading on com.endorsed.dirs to understand if it will read from said sub-directory_
+        * _Note: Currently this directory does not exist, but there is a java-j2se_1.6-sun in the parent_
         * For more information, see: http://stackoverflow.com/a/23217319
     * Passes any additional arguments carried forward from start_lp.py
 
-* Start.jar
+* Start.jar - DanderSpritz Operation Center (entry point to launch DanderSpritz implementation)
+  * Agruments for main(String[] args)
+    * -core [debug|release]
+      * Given one of the provided values, will swtich between debug and release modes <which does what exactly?>
+    * -gui [debug|release]
+      * Given one of the provided values, will swtich between debug and release modes <which does what exactly?>
+    * -debug
+    * -release
+    * -local
+    * -previous
+    * -live
+    * -replay
+    * -opsdisk
+    * -resource
+    * -log
+    * -config
+    * -load
+
   * Reads from user.defaults and start.properties
 
-# user.defaults
-* Parameters
-  * OpsDisk - This should be a directory. _Default: Current Working Directory_
-  * ConfigDir - Path to the /UserConfiguration/ directory
-  * LogDir - Path to the /Logs/ directory
-  * ResourceDir - Path to the /Resources/ directory
+# Configuration Files and Values
 
+## user.defaults
+
+* OpsDisk - This should be a directory. _Default: Current Working Directory_
+* ResourceDir - Path to the /Resources/ directory
+* LogDir - Path to the /Logs/ directory
+* ConfigDir - Path to the /UserConfiguration/ directory
+* live.DSZ_KEYWORD
+* replay.DSZ_KEYWORD
+* OpMode
+* BuildType
+* GuiType
+* LocalMode
+* LoadPrevious
+* thread.dump
+* wait.for.output
+
+## start.properties
+
+* res.dir = 
+* java.exe
+* vmargs
+* vmargs.debug
+* windows.start
+* windows.tool.chain
+* linux.tool.chain
+* live.operation
+* replay.operation
+
+* show.optype
+* show.debug.core
+* show.debug.gui
+* show.local.mode
+* show.thread.dump
+
+* label.resource
+* label.log
+* label.config
+* label.disk
+* label.browse
+* label.start
+* label.comms
+* label.opMode
+* label.live
+* label.replay
+* label.options
+* label.loadPrevious
+* label.localMode
+* label.core
+* label.debug
+* label.release
+* label.gui
+
+* tooltip.resource
+* tooltip.log
+* tooltip.config
+* tooltip.disk
+* tooltip.resource.browse
+* tooltip.log.browse
+* tooltip.config.browse
+* tooltip.disk.browse
+* tooltip.start
+* tooltip.live
+* tooltip.replay
+* tooltip.loadPrevious
+* tooltip.localMode
+* tooltip.debug
+* tooltip.release
 
 # TODO
 
