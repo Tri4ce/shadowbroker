@@ -1,5 +1,22 @@
 # Environment Configuration
 
+## **DO NOT USE AGAINST LIVE TARGETS!**
+
+**I cannot stress this enough. These files are out in the open to learn from and do research on. I take no responsbility if you use these files against actual production systems. Remember, it is illegal to use these against live targets that are not your property, and it's illegal to even launch them remotely on your own VMs hosted in the cloud in some cases, as this could cause IDS / IPS systems to trip.**
+
+## Existing Desktop or Virtual Machine?
+
+I HIGHLY recommended that you do all of your investigation, research, debugging, and running of the following software packages and source inside of a Virtual Machine (VM). When testing exploits on target hosts, I also recommend switching them to an _INTERNAL_ virtual network switch, so that traffic can only go between Client / Target testing guests.
+
+I'm testing the following code inside of Hyper-V with the following guest configurations:
+
+* Windows 10 Client - Used for source exploration, debugging, and launching of exploits (only connects to an external network to download updates and any packages needed to debug...other than that, this stays on an internal network)
+* Linux Mint 18 - Used for debugging and launching of exploits (only connects to an external network to download updates and any packages needed to debug...other than that, this stays on an internal network)
+* Windows Server 2012 R2 - Used as an exploit target for testing (connects to external network immediately after install for updates and patching, but stays on internal network afterward)
+* Windows Server 2008 R2 - Used as an exploit target for testing (connects to external network immediately after install for updates and patching, but stays on internal network afterward)
+
+_Note: More evnironments to be added as time and investigation proceeds_
+
 ## OS-neutral Steps
 
 1. Install Python
@@ -45,5 +62,15 @@ I have been tracing the source code paths and what links to what throughout the 
 
 * Start.jar
   * Reads from user.defaults and start.properties
-  * 
 
+# user.defaults
+* Parameters
+  * OpsDisk - This should be a directory. _Default: Current Working Directory_
+  * ConfigDir - Path to the /UserConfiguration/ directory
+  * LogDir - Path to the /Logs/ directory
+  * ResourceDir - Path to the /Resources/ directory
+
+
+# TODO
+
+* Figure out what the OpsDisk parameter is in user.defaults

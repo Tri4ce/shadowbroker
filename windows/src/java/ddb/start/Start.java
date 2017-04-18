@@ -103,10 +103,11 @@ public class Start
   static Properties userDefaults = new Properties();
   public static final String START_PROPERTIES = "start.properties";
   public static final String USER_DEFAULTS = "user.defaults";
-  boolean guess = false;
+  boolean inferTextFieldValues = false;
   JFileChooser directoryFinder = null;
   private static char[] INVALIDCHARACTERS = { '\t', ' ', '\b', '\n', '\r' };
   File themeSearchRoot = null;
+
   DefaultComboBoxModel liveOperationThemes = new DefaultComboBoxModel();
   DefaultComboBoxModel replayOperationThemes = new DefaultComboBoxModel();
   JRadioButton buildDebug;
@@ -182,9 +183,12 @@ public class Start
     
     try {
       
+      // Load our user.defaults file into a Property List
       userDefaults.load(new FileInputStream("user.defaults"));
 
+      // What should an "OpsDisk" contain?
       operationField.setText(getStringDefault("OpsDisk", ""));
+      
       resourceField.setText(getStringDefault("ResourceDir", ""));
       logField.setText(getStringDefault("LogDir", ""));
       configurationField.setText(getStringDefault("ConfigDir", ""));
@@ -199,15 +203,19 @@ public class Start
       infer(localFile.getCanonicalFile());
 
     }
+
+    // Triggered if no user.defaults filed found
     catch (FileNotFoundException localFileNotFoundException2) {
-      guess = true;
-    }
-    catch (Exception localException2) {
-      localException2.printStackTrace();
-      guess = true;
+      inferTextFieldValues = true;
     }
 
-    if (guess) {
+    // Triggered upon SNAFU from loading in user.default files (permissions issues, something other than FileNotFoundException)
+    catch (Exception localException2) {
+      localException2.printStackTrace();
+      inferTextFieldValues = true;
+    }
+
+    if (inferTextFieldValues) {
       infer(new File("."));
       examine();
     }
@@ -538,57 +546,80 @@ public class Start
     return false;
   }
   
-  void infer(File paramFile)
+  /**
+   * Infers the values for multiple textFields and other items
+   * 
+   * 1. If the Operations Field text is blank, then set it to the Current Working Directory (CWD)
+   * 2. If the Resource Field text is blank, then set it to <CWD>/Resources/
+   * 3. If the Log Field text is blank, then set it to <CWD>/Logs/
+   * 4. If the Configuration Field text is blank, then set it to <CWD>/UserConfiguration/
+   * 
+   */
+  void infer(File fileOrPathName)
   {
-    if (paramFile == null) {
+
+    // If no filepath / filename was specified, then there's nothing to infer
+    if (fileOrPathName == null) {
       return;
     }
+
     try
     {
+      
       if (operationField.getText().trim().length() == 0) {
-        operationField.setText(new File(paramFile.getAbsolutePath()).getCanonicalPath());
+        operationField.setText(new File(fileOrPathName.getAbsolutePath()).getCanonicalPath());
       }
+
       if (resourceField.getText().trim().length() == 0)
       {
-        File localFile = new File(paramFile.getAbsolutePath(), "/Resources/");
+        File localFile = new File(fileOrPathName.getAbsolutePath(), "/Resources/");
         resourceField.setText(localFile.getCanonicalPath());
         searchOutThemes(localFile);
       }
+      
       if (logField.getText().trim().length() == 0) {
-        logField.setText(new File(paramFile.getAbsolutePath(), "/Logs/").getCanonicalPath());
+        logField.setText(new File(fileOrPathName.getAbsolutePath(), "/Logs/").getCanonicalPath());
       }
+      
       if (configurationField.getText().trim().length() == 0) {
-        configurationField.setText(new File(paramFile.getAbsolutePath(), "/UserConfiguration/").getCanonicalPath());
+        configurationField.setText(new File(fileOrPathName.getAbsolutePath(), "/UserConfiguration/").getCanonicalPath());
       }
+
     }
     catch (IOException localIOException)
     {
       localIOException.printStackTrace();
     }
+
     examine();
+
   }
   
-  void searchOutThemes(File paramFile)
+  /**
+   * Called from void infer(File fileOrPathName)
+   * Called from boolean examine()
+   */
+  void searchOutThemes(File fileOrPathName)
   {
-    if (paramFile == themeSearchRoot) {
+    if (fileOrPathName == themeSearchRoot) {
       return;
     }
-    if (paramFile == null)
+    if (fileOrPathName == null)
     {
       themeSelector.setEnabled(false);
       themeSelector.setSelectedItem(null);
       return;
     }
-    if (paramFile.equals(themeSearchRoot)) {
+    if (fileOrPathName.equals(themeSearchRoot)) {
       return;
     }
-    themeSearchRoot = paramFile;
+    themeSearchRoot = fileOrPathName;
     liveOperationThemes.removeAllElements();
     replayOperationThemes.removeAllElements();
     String str1 = "Gui/Config/";
     Vector localVector = new Vector();
     localVector.add(".");
-    File[] arrayOfFile1 = paramFile.listFiles();
+    File[] arrayOfFile1 = fileOrPathName.listFiles();
     if (arrayOfFile1 != null) {
       for (localTreeSet2 : arrayOfFile1) {
         if (localTreeSet2.isDirectory()) {
@@ -659,11 +690,16 @@ public class Start
 
     try
     {
+
       Start localStart = new Start();
-      String str2 = getStringDefault(LIVE_KEYWORD);
-      liveOperationThemes.setSelectedItem("Default");
       int i;
 
+      // Combo-box for "Live Operation Themes"?
+      liveOperationThemes.setSelectedItem("Default");
+
+      // LIVE_KEYWORD = live.DSZ_KEYWORD
+      // user.defaults.live.DSZ_KEYWORD = Simple
+      String str2 = getStringDefault(LIVE_KEYWORD);
       if (str2 != null)
       {
         for (i = 0; i < liveOperationThemes.getSize(); i++) {
@@ -834,11 +870,13 @@ public class Start
           System.exit(0);
         }
       }
+
       if ((j != 0) && (localStart.isReady())) {
         localStart.DanderSpritzBegin();
       } else {
         localStart.setVisible(true);
       }
+
     }
     catch (Throwable localThrowable)
     {
@@ -852,7 +890,7 @@ public class Start
    * otherwise it will return a blank string.
    *
    * @param   propertyName  the name of the property to lookup in user.defaults
-   * @reutrn                the value of the property in user.defaults or a blank-string if not found
+   * @return                the value of the property in user.defaults or a blank-string if not found
    */
   public static String getStringDefault(String propertyName) {
     return getStringDefault(propertyName, "");
@@ -879,7 +917,7 @@ public class Start
    * otherwise it will return the Boolean.TRUE.
    *
    * @param   propertyName  the name of the property to lookup in user.defaults
-   * @reutrn                the value of the property in user.defaults or a blank-string if not found
+   * @return                the value of the property in user.defaults or a blank-string if not found
    */
   public static Boolean getBooleanDefault(String propertyName) {
     return getBooleanDefault(propertyName, Boolean.TRUE);
@@ -986,48 +1024,97 @@ public class Start
 
   }
   
-  private boolean evaluatePath(String paramString, boolean paramBoolean)
+  /**
+   * Performs an evaluation on the path provided and returns a value
+   * depending on many factors (see @return values)
+   * 
+   * @param   path                        the path to evaluate against
+   * @param   suppressDirectoryCreation   whether or not to automatically create a directory for the path provided, if one does not already exist
+   * 
+   * @return    - true:  if a file corresponding to the path does exist AND is of type directory
+   *            - true:  if a file corresponding to the path does not exist AND we were successful creating a new directory
+   *            - false: if the path contains invalid characters
+   *            - false: if a file corresponding to the path does not exist AND directory creation is suppressed
+   *            - false: if all else fails
+   */
+  private boolean evaluatePath(String path, boolean suppressDirectoryCreation)
   {
+
+    // Ensure that the path doesn't contain any invalid characters
     for (int k : INVALIDCHARACTERS) {
-      if (paramString.indexOf(k) >= 0) {
+      if (path.indexOf(k) >= 0) {
         return false;
       }
     }
-    ??? = new File(paramString);
-    if ((((File)???).exists()) && (((File)???).isDirectory())) {
+
+    // Return true if the path exists and it is a directory
+    File file = new File(path);
+    if (file.exists() && file.isDirectory()) {
       return true;
     }
-    if (!((File)???).exists())
+
+    if (!file.exists())
     {
-      if (paramBoolean) {
+
+      // Do not automatically create a directory
+      if (supressDirectoryCreation) {
         return false;
       }
-      return ((File)???).mkdirs();
+
+      return file.mkdirs();
+
     }
+
     return false;
+
   }
   
+  /**
+   * Returns a value indicating whether or not the following fields have valid values:
+   * 
+   * - Operation Field (should be a directory path)
+   * - Resource Field (should be a directory path)
+   * - Log Field (should be a directory path)
+   * - Configuration Field (should be a directory path)
+   * - Local Communications Address (should be an IP Address)
+   * 
+   * @return    value indicating whether or not the required configuration fields are valid
+   */
   public boolean evaluate()
   {
+
     if (!evaluatePath(operationField.getText(), true)) {
       return error("Operation Disk location '" + operationField.getText() + "' does not exist or is not a directory");
     }
+
     if (!evaluatePath(resourceField.getText(), true)) {
       return error("Resource location '" + resourceField.getText() + "' does not exist or is not a directory");
     }
+
     if (!evaluatePath(logField.getText(), false)) {
       return error("Log directory '" + logField.getText() + "' is not a directory");
     }
+
     if (!evaluatePath(configurationField.getText(), false)) {
       return error("Configuration directory '" + configurationField.getText() + "' is not a directory");
     }
+
     if (!isValidId(localCommsAddressField.getText())) {
       return error(String.format("Comms Address '%s' is invalid", new Object[] { localCommsAddressField.getText() }));
     }
+
     return true;
+
   }
   
-  private boolean isValidId(String paramString)
+  /**
+   * Returns a value indicating whether the provided address
+   * is a valid Communications (IP) Address using a predefined
+   * set of RegEx Patterns.
+   * 
+   * @param   communicationsAddress   the Communications (IP) Address to test for validity
+   */
+  private boolean isValidId(String communicationsAddress)
   {
     for (Pattern localPattern : patterns) {
       if (localPattern.matcher(paramString).matches()) {
@@ -1037,18 +1124,41 @@ public class Start
     return false;
   }
   
-  public boolean error(String paramString)
+  /**
+   * Displays a Swing UI Message Dialog with the
+   * specified Error Message text.
+   * 
+   * @return <why does this return false all the time?>
+   */
+  public boolean error(String errorMessage)
   {
-    JOptionPane.showMessageDialog(this, paramString, "Invalid parameters", 0);
+    JOptionPane.showMessageDialog(this, errorMessage, "Invalid parameters", 0);
     return false;
   }
   
+  /**
+   * Returns a value indicating whether or not we're ready <for what?> if:
+   * 
+   * 1. We're not attempting to guess the user.defaults file and infer it
+   * 2. evaluate returns true (wtf does taht do?)
+   * 3. examine returns true (wtf does that do?)
+   * 
+   * @return    value indicating if we're ready <for what?>
+   */
   public boolean isReady()
   {
-    return (!guess) && (evaluate()) && (examine());
+    return (!inferTextFieldValues) && (evaluate()) && (examine());
   }
   
-  public boolean isDir(String paramString)
+  /**
+   * Returns a value indicating whether:
+   * 1. The Directory exists
+   * 2. The Directory was successfully created if it didn't already exist
+   * 
+   * @param   directoryPath   the path to the directory to test for / create
+   * @return                  true if either the directory already exists, or the function was successful in creating it
+   */
+  public boolean isDir(String directoryPath)
   {
     if (paramString == null) {
       return false;
@@ -1077,8 +1187,15 @@ public class Start
     }, "Start DanderSpritz").start();
   }
   
+  /**
+   * The start of the DanderSpritz Implementation
+   */
   private void beginImpl()
   {
+
+    // Check to see if the configuration area is read-only or not,
+    // if it is, then throw a dialog up and let the user decide what
+    // to do to proceed.
     File localFile1 = new File(configurationField.getText(), "testfile.dsz");
     File localFile2 = localFile1.getParentFile();
     int i = 0;
@@ -1114,6 +1231,7 @@ public class Start
         return;
       }
     }
+
     EventQueue.invokeLater(new Runnable()
     {
       public void run()
@@ -1122,6 +1240,7 @@ public class Start
         dispose();
       }
     });
+
     String str1 = System.getProperty("com.sun.management.jmxremote.port");
     if (str1 != null)
     {
@@ -1138,21 +1257,25 @@ public class Start
         }
       }
     }
+
     setStringDefault("OpsDisk", operationField.getText());
     setStringDefault("ResourceDir", resourceField.getText());
     setStringDefault("LogDir", logField.getText());
     setStringDefault("ConfigDir", configurationField.getText());
     setStringDefault("LocalAddress", localCommsAddressField.getText());
+
     if ((liveOperationThemes.getSelectedItem() != null) && (!liveOperationThemes.getSelectedItem().equals("Default"))) {
       setStringDefault(LIVE_KEYWORD, liveOperationThemes.getSelectedItem().toString());
     } else {
       setStringDefault(LIVE_KEYWORD, null);
     }
+
     if ((replayOperationThemes.getSelectedItem() != null) && (!replayOperationThemes.getSelectedItem().equals("Default"))) {
       setStringDefault(REPLAY_KEYWORD, replayOperationThemes.getSelectedItem().toString());
     } else {
       setStringDefault(REPLAY_KEYWORD, null);
     }
+
     setBooleanDefault("OpMode", Boolean.valueOf(liveOption.isSelected()));
     setBooleanDefault("BuildType", Boolean.valueOf(buildRelease.isSelected()));
     setBooleanDefault("GuiType", Boolean.valueOf(guiRelease.isSelected()));
@@ -1160,11 +1283,13 @@ public class Start
     setBooleanDefault("LoadPrevious", Boolean.valueOf(loadPrevious.isSelected()));
     setBooleanDefault("thread.dump", Boolean.valueOf(threadDump.isSelected()));
     setBooleanDefault("wait.for.output", Boolean.valueOf(waitFor.isSelected()));
+    
     try
     {
       userDefaults.store(new FileOutputStream("user.defaults"), "Autogenerated DanderSpritz configuration.  Do not edit manually");
     }
     catch (Exception localException2) {}
+    
     ProcessBuilder localProcessBuilder = new ProcessBuilder(new String[0]);
     Vector localVector1 = new Vector();
     localProcessBuilder.command(localVector1);
@@ -1300,23 +1425,23 @@ public class Start
     }
   }
   
-  private void addJars(List<String> paramList, File paramFile)
+  private void addJars(List<String> paramList, File fileOrPathName)
   {
-    if (!paramFile.isDirectory()) {
+    if (!fileOrPathName.isDirectory()) {
       return;
     }
-    for (File localFile : paramFile.listFiles(jars)) {
+    for (File localFile : fileOrPathName.listFiles(jars)) {
       paramList.add(localFile.getAbsolutePath());
     }
   }
   
-  private void addJarsRecursively(List<String> paramList, File paramFile)
+  private void addJarsRecursively(List<String> paramList, File fileOrPathName)
   {
-    if (!paramFile.isDirectory()) {
+    if (!fileOrPathName.isDirectory()) {
       return;
     }
-    addJars(paramList, paramFile);
-    for (File localFile : paramFile.listFiles()) {
+    addJars(paramList, fileOrPathName);
+    for (File localFile : fileOrPathName.listFiles()) {
       if ((localFile.isDirectory()) && (!localFile.getName().equals(".svn"))) {
         addJarsRecursively(paramList, localFile);
       }
@@ -1391,31 +1516,50 @@ public class Start
     }
   }
   
+  /**
+   * Called from:
+   *  start() - if we're inferring the textField values
+   *  isReady() - when checking for <what are we checking for?>
+   *  enterPressed(KeyEvent paramKeyEvent) - 
+   *  infer(File fileOrPathName) - 
+   * 
+   * @return  a value indicating ...
+   */
   private boolean examine()
   {
+    
+    boolean bool = true;
     Vector localVector1 = new Vector();
     Vector localVector2 = new Vector();
     Vector localVector3 = new Vector();
     Vector localVector4 = new Vector();
+    
+    // Handle the Operation Field
     localVector1.add(new File(String.format("%s", new Object[] { operationField.getText() })));
     localVector1.add(new File(String.format("%s%s%s", new Object[] { operationField.getText(), File.separator, "Bin" })));
-    localVector2.add(new File(String.format("%s", new Object[] { resourceField.getText() })));
-    localVector2.add(new File(String.format("%s/%s/%s/%s/%s", new Object[] { resourceField.getText(), File.separator, "Dsz/Gui/lib", "java-j2se_1.6-sun", "Core.jar" })));
-    boolean bool = true;
     if (!examine(localVector1, operationField)) {
       bool = false;
     }
+
+    // Handle the Resource Field 
+    localVector2.add(new File(String.format("%s", new Object[] { resourceField.getText() })));
+    localVector2.add(new File(String.format("%s/%s/%s/%s/%s", new Object[] { resourceField.getText(), File.separator, "Dsz/Gui/lib", "java-j2se_1.6-sun", "Core.jar" })));
     if (!examine(localVector2, resourceField)) {
       bool = false;
     } else {
       searchOutThemes(new File(resourceField.getText()));
     }
+
+    // Handle the Configuration Field (no paths involved for fileList param)
     if (!examine(localVector3, configurationField)) {
       bool = false;
     }
+
+    // Handle the Log Field (no paths involved for fileList param)
     if (!examine(localVector4, logField)) {
       bool = false;
     }
+
     if (!isValidId(localCommsAddressField.getText()))
     {
       setConfig(localCommsAddressField, false);
@@ -1425,41 +1569,75 @@ public class Start
     {
       setConfig(localCommsAddressField, true);
     }
+    
     goButton.setEnabled(bool);
+    
     return bool;
+
   }
   
-  private void setConfig(JTextField paramJTextField, boolean paramBoolean)
+  /**
+   * Configures the Foreground and Background colors of a
+   * Text Field, making it look either enabled or disabled.
+   * 
+   * @param   textField           the textField to configure
+   * @param   isTextFieldEnabled  true if the textField is enabled, false if not
+   */
+  private void setConfig(JTextField textField, boolean isTextFieldEnabled)
   {
-    if (paramBoolean)
+    if (isTextFieldEnabled)
     {
-      paramJTextField.setBackground(Color.WHITE);
-      paramJTextField.setForeground(Color.BLACK);
+      textField.setBackground(Color.WHITE);
+      textField.setForeground(Color.BLACK);
     }
     else
     {
-      paramJTextField.setBackground(Color.GRAY);
-      paramJTextField.setForeground(Color.WHITE);
+      textField.setBackground(Color.GRAY);
+      textField.setForeground(Color.WHITE);
     }
   }
   
-  private boolean examine(List<File> paramList, JTextField paramJTextField)
+  /**
+   * Configures the Foreground and Background colors of a textField
+   * to make it look enabled or disabled.
+   * 
+   * 1. Any invalid characters in the textfield will disable it
+   * 2. If there are any files/directories passed in and they
+   *    don't exist, this will also disable the textfield
+   * 
+   * 
+   * @param   fileList    the List of File objects to examine and check for existence
+   * @param   textField   the textField to operate against
+   * @return              value indicating whether the textField is enabled or disabled
+   */
+  private boolean examine(List<File> fileList, JTextField textField)
   {
-    boolean bool = true;
+    
+    boolean isTextFieldEnabled = true;
+    
+    // Loop through the Invalid Characters array and
+    // check to see if the value is in the textField's
+    // current text value. If so, mark the field as
+    // disabled.
     for (int k : INVALIDCHARACTERS) {
-      if (paramJTextField.getText().indexOf(k) >= 0)
+      if (textField.getText().indexOf(k) >= 0)
       {
-        bool = false;
+        isTextFieldEnabled = false;
         break;
       }
     }
-    ??? = paramList.iterator();
-    while (((Iterator)???).hasNext())
+
+    Iterator fileListIterator = fileList.iterator();
+    while (fileListIterator.hasNext())
     {
-      File localFile = (File)((Iterator)???).next();
-      bool = (bool) && (localFile.exists());
+      File localFile = (File)fileListIterator.next();
+      isTextFieldEnabled = (isTextFieldEnabled) && (localFile.exists());
     }
-    setConfig(paramJTextField, bool);
-    return bool;
+
+    setConfig(textField, isTextFieldEnabled);
+
+    return isTextFieldEnabled;
+
   }
+
 }
